@@ -15,6 +15,7 @@ extern "C" {
 #define HAL_CORTEX_MODULE_ENABLED
 #define HAL_SPI_MODULE_ENABLED
 #define HAL_I2C_MODULE_ENABLED
+#define HAL_UART_MODULE_ENABLED
 
 #if !defined(HSE_VALUE)
 #define HSE_VALUE    8000000U
@@ -76,6 +77,9 @@ extern "C" {
 #endif
 #ifdef HAL_I2C_MODULE_ENABLED
 #include "stm32f4xx_hal_i2c.h"
+#endif
+#ifdef HAL_UART_MODULE_ENABLED
+#include "stm32f4xx_hal_uart.h"
 #endif
 
 #ifdef USE_FULL_ASSERT

@@ -1,18 +1,27 @@
 #include "main.h"
 #include "stm32f429i_discovery.h"
+#include "log.h"
 
 SPI_HandleTypeDef hspi5;
+UART_HandleTypeDef huart1;
 
 static void SystemClock_Config(void);
 static void SPI5_Init(void);
+static void USART1_Init(void);
 
 int main(void)
 {
     HAL_Init();
     SystemClock_Config();
+    USART1_Init();
+    Log_Init(&huart1);
     SPI5_Init();
     BSP_LED_Init(LED3);
     BSP_LED_Init(LED4);
+
+    LOG_TRACE("SystemClock configured (168 MHz SYSCLK)");
+    LOG_DEBUG("SPI5 initialized (LCD)");
+    LOG_INFO("ILI9341 LCD initializing");
 
     ILI9341_Init(&hspi5);
     ILI9341_FillScreen(ILI9341_BLUE);
@@ -22,7 +31,12 @@ int main(void)
     /* 12 chars * 8px/char = 96px wide, centered at x=(320-96)/2=112 */
     ILI9341_DrawString(112, 116, msg, ILI9341_WHITE, ILI9341_BLUE);
 
-    uint32_t led3_last = 0, led4_last = 0;
+    LOG_INFO("HELLO WORLD! drawn on LCD");
+    LOG_WARN("example warning-level message");
+    LOG_ERROR("example error-level message");
+    LOG_FATAL("example fatal-level message (non-halting demo)");
+
+    uint32_t led3_last = 0, led4_last = 0, log_last = 0;
     while (1) {
         uint32_t now = HAL_GetTick();
         if (now - led3_last >= 125) {
@@ -32,6 +46,10 @@ int main(void)
         if (now - led4_last >= 250) {
             BSP_LED_Toggle(LED4);
             led4_last = now;
+        }
+        if (now - log_last >= 1000) {
+            LOG_INFO("heartbeat, uptime=%lu ms", (unsigned long)now);
+            log_last = now;
         }
     }
 }
@@ -83,6 +101,21 @@ static void SPI5_Init(void)
     hspi5.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
     hspi5.Init.CRCPolynomial     = 10;
     if (HAL_SPI_Init(&hspi5) != HAL_OK)
+        Error_Handler();
+}
+
+/* USART1 TX=PA9, RX=PA10, 115200 8N1. APB2=84 MHz. */
+static void USART1_Init(void)
+{
+    huart1.Instance          = USART1;
+    huart1.Init.BaudRate     = 115200;
+    huart1.Init.WordLength   = UART_WORDLENGTH_8B;
+    huart1.Init.StopBits     = UART_STOPBITS_1;
+    huart1.Init.Parity       = UART_PARITY_NONE;
+    huart1.Init.Mode         = UART_MODE_TX_RX;
+    huart1.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
+    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+    if (HAL_UART_Init(&huart1) != HAL_OK)
         Error_Handler();
 }
 

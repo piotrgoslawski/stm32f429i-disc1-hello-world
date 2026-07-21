@@ -1,4 +1,5 @@
 #include "ili9341.h"
+#include "log.h"
 #include <string.h>
 
 /* SPI5 GPIO: SCK=PF7(AF5), MOSI=PF9(AF5), CS=PC2, DC=PD13 */
@@ -151,6 +152,8 @@ static void set_address_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
 
 void ILI9341_Init(SPI_HandleTypeDef *hspi)
 {
+    LOG_DEBUG("ILI9341: init start");
+
     _hspi = hspi;
 
     /* CS and DC are GPIO outputs — deselect initially */
@@ -228,10 +231,14 @@ void ILI9341_Init(SPI_HandleTypeDef *hspi)
 
     write_cmd(0x29); /* Display on */
     HAL_Delay(20);
+
+    LOG_DEBUG("ILI9341: init done");
 }
 
 void ILI9341_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
 {
+    LOG_TRACE("ILI9341: FillRect x=%u y=%u w=%u h=%u color=0x%04X", x, y, w, h, color);
+
     set_address_window(x, y, x + w - 1, y + h - 1);
 
     uint8_t hi = color >> 8;
@@ -282,6 +289,8 @@ void ILI9341_DrawChar(uint16_t x, uint16_t y, char c, uint16_t fg, uint16_t bg)
 
 void ILI9341_DrawString(uint16_t x, uint16_t y, const char *str, uint16_t fg, uint16_t bg)
 {
+    LOG_TRACE("ILI9341: DrawString \"%s\" at (%u,%u)", str, x, y);
+
     while (*str) {
         ILI9341_DrawChar(x, y, *str++, fg, bg);
         x += 8;

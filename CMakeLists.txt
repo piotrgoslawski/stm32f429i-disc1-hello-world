@@ -54,6 +54,7 @@ add_subdirectory(cmake/stm32cubemx)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/ili9341.c
+    Core/Src/log.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

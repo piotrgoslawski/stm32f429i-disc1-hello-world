@@ -6,6 +6,7 @@ CMake-based bare-metal demo for the STM32F429I-Discovery board.
 
 - Displays **"HELLO WORLD!"** on the onboard ILI9341 LCD (SPI5)
 - Blinks **LED3** (green, PG13) at 4 Hz and **LED4** (red, PG14) at 2 Hz
+- Prints leveled debug logs (TRACE/DEBUG/INFO/WARN/ERROR/FATAL) over USART1 at 115200 8N1
 
 ## Requirements
 
@@ -41,6 +42,13 @@ st-flash write build/Debug/hello_lcd.bin 0x08000000
 | LCD D/C  | PD13 |
 | LED3 (green) | PG13 |
 | LED4 (red)   | PG14 |
+| USART1 TX | PA9  |
+| USART1 RX | PA10 |
+
+This board has no onboard USB-serial bridge, so connect an external USB-TTL
+adapter (e.g. FTDI) to PA9/PA10 (and GND) to view the log output at 115200
+8N1. Note PA9/PA10 are also wired to the OTG_FS VBUS-sense/ID lines on this
+board — don't use the USB OTG connector at the same time as the debug UART.
 
 ## CLion
 
