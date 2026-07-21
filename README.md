@@ -7,6 +7,8 @@ CMake-based bare-metal demo for the STM32F429I-Discovery board.
 - Displays **"HELLO WORLD!"** on the onboard ILI9341 LCD (SPI5)
 - Blinks **LED3** (green, PG13) at 4 Hz and **LED4** (red, PG14) at 2 Hz
 - Prints leveled debug logs (TRACE/DEBUG/INFO/WARN/ERROR/FATAL) over USART1 at 115200 8N1
+- Reads the onboard L3GD20 MEMS gyroscope (SPI5) and prints X/Y/Z angular
+  rate once a second over UART
 
 ## Requirements
 
@@ -37,9 +39,11 @@ st-flash write build/Debug/hello_lcd.bin 0x08000000
 | Signal   | Pin  |
 |----------|------|
 | SPI5 SCK | PF7  |
+| SPI5 MISO| PF8  |
 | SPI5 MOSI| PF9  |
 | LCD CS   | PC2  |
 | LCD D/C  | PD13 |
+| Gyro (L3GD20) CS | PC1 |
 | LED3 (green) | PG13 |
 | LED4 (red)   | PG14 |
 | USART1 TX | PA9  |

@@ -43,6 +43,7 @@ add_link_options(
     -mfloat-abi=hard
     -T "${CMAKE_SOURCE_DIR}/STM32F429xx_FLASH.ld"
     --specs=nano.specs
+    -Wl,-u,_printf_float
     -Wl,--gc-sections
     -Wl,-Map=${CMAKE_PROJECT_NAME}.map
     -Wl,--print-memory-usage
@@ -54,6 +55,7 @@ add_subdirectory(cmake/stm32cubemx)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/ili9341.c
+    Core/Src/l3gd20.c
     Core/Src/log.c
 )
 

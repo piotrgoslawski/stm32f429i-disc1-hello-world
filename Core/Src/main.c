@@ -1,6 +1,7 @@
 #include "main.h"
 #include "stm32f429i_discovery.h"
 #include "log.h"
+#include "l3gd20.h"
 
 SPI_HandleTypeDef hspi5;
 UART_HandleTypeDef huart1;
@@ -20,11 +21,14 @@ int main(void)
     BSP_LED_Init(LED4);
 
     LOG_TRACE("SystemClock configured (168 MHz SYSCLK)");
-    LOG_DEBUG("SPI5 initialized (LCD)");
+    LOG_DEBUG("SPI5 initialized (LCD + gyroscope)");
     LOG_INFO("ILI9341 LCD initializing");
 
     ILI9341_Init(&hspi5);
     ILI9341_FillScreen(ILI9341_BLUE);
+
+    LOG_INFO("L3GD20 gyroscope initializing");
+    L3GD20_Init(&hspi5);
 
     /* Draw "Hello World!" centered on the 320x240 display */
     const char *msg = "HELLO WORLD!";
@@ -36,7 +40,7 @@ int main(void)
     LOG_ERROR("example error-level message");
     LOG_FATAL("example fatal-level message (non-halting demo)");
 
-    uint32_t led3_last = 0, led4_last = 0, log_last = 0;
+    uint32_t led3_last = 0, led4_last = 0, gyro_last = 0;
     while (1) {
         uint32_t now = HAL_GetTick();
         if (now - led3_last >= 125) {
@@ -47,9 +51,11 @@ int main(void)
             BSP_LED_Toggle(LED4);
             led4_last = now;
         }
-        if (now - log_last >= 1000) {
-            LOG_INFO("heartbeat, uptime=%lu ms", (unsigned long)now);
-            log_last = now;
+        if (now - gyro_last >= 1000) {
+            float gx, gy, gz;
+            L3GD20_ReadDPS(&gx, &gy, &gz);
+            LOG_INFO("gyro: x=%.2f dps y=%.2f dps z=%.2f dps", gx, gy, gz);
+            gyro_last = now;
         }
     }
 }
