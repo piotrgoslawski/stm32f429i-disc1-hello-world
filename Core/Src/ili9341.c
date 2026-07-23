@@ -1,4 +1,5 @@
 #include "ili9341.h"
+#include "ili9341.h"
 #include "log.h"
 #include <string.h>
 
@@ -197,7 +198,9 @@ void ILI9341_Init(SPI_HandleTypeDef *hspi)
     write_data(0x86);
 
     write_cmd(0x36); /* Memory access control — landscape mode */
-    write_data(0x28); /* MX | BGR */
+    write_data(0xE8); /* MY | MX | MV | BGR. At this MADCTL value, characters render
+                          individually rotated 180° (string order is correct) --
+                          compensated for in ILI9341_DrawChar's pixel iteration order. */
 
     write_cmd(0x3A); /* Pixel format: 16-bit RGB565 */
     write_data(0x55);
@@ -270,9 +273,15 @@ void ILI9341_DrawChar(uint16_t x, uint16_t y, char c, uint16_t fg, uint16_t bg)
     uint8_t fg_hi = fg >> 8, fg_lo = fg & 0xFF;
     uint8_t bg_hi = bg >> 8, bg_lo = bg & 0xFF;
 
+    /* Row order is reversed relative to the natural bitmap scan (row 0
+     * first) to cancel out the vertical component of this panel's MADCTL
+     * setting -- see the comment on the 0x36 command in ILI9341_Init.
+     * Column order (MSB/leftmost bit first) is the natural, uncompensated
+     * scan -- reversing it previously overcorrected into a horizontal
+     * mirror. */
     LCD_DC_DATA();
     LCD_CS_LOW();
-    for (int row = 0; row < 8; row++) {
+    for (int row = 7; row >= 0; row--) {
         uint8_t bits = glyph[row];
         for (int col = 7; col >= 0; col--) {
             if (bits & (1 << col)) {
@@ -291,12 +300,16 @@ void ILI9341_DrawString(uint16_t x, uint16_t y, const char *str, uint16_t fg, ui
 {
     LOG_TRACE("ILI9341: DrawString \"%s\" at (%u,%u)", str, x, y);
 
+    /* Increasing X moves the draw position left on this panel (see the
+     * MADCTL comment in ILI9341_Init), so advancing left-to-right on
+     * screen means decreasing X here. */
     while (*str) {
         ILI9341_DrawChar(x, y, *str++, fg, bg);
-        x += 8;
-        if (x + 8 > ILI9341_WIDTH) {
-            x = 0;
+        if (x < 8) {
+            x = ILI9341_WIDTH - 8;
             y += 8;
+        } else {
+            x -= 8;
         }
     }
 }
